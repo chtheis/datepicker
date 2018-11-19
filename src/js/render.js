@@ -65,17 +65,22 @@ export default {
         disabled = filter.call(this.$element, date) === false;
       }
 
+      const highlighted = date.getFullYear() === thisYear;
       const picked = (viewYear + i) === year;
       const view = picked ? 'year picked' : 'year';
 
       items.push(this.createItem({
-        picked,
-        disabled,
+        classes : {
+          picked: picked,
+          disabled: disabled,
+          muted: i === start || i === end
+        },  
+        date: date,
         text: viewYear + i,
         view: disabled ? 'year disabled' : view,
-        highlighted: date.getFullYear() === thisYear,
-      }));
-    }
+        highlighted: highlighted
+    }));
+  }
 
     this.$yearsPrev.toggleClass(disabledClass, prevDisabled);
     this.$yearsNext.toggleClass(disabledClass, nextDisabled);
@@ -124,14 +129,18 @@ export default {
         disabled = filter.call(this.$element, date) === false;
       }
 
+      const highlighted = viewYear === thisYear && date.getMonth() === thisMonth;
       const picked = viewYear === year && i === month;
       const view = picked ? 'month picked' : 'month';
 
       items.push(this.createItem({
-        disabled,
-        picked,
-        highlighted: viewYear === thisYear && date.getMonth() === thisMonth,
+        classes : {
+          disabled: disabled,
+          picked: picked,
+          highlighted: highlighted
+        },
         index: i,
+        date: date,
         text: months[i],
         view: disabled ? 'month disabled' : view,
       }));
@@ -220,16 +229,17 @@ export default {
         disabled = filter.call($element, prevViewDate) === false;
       }
 
+      const highlighted = prevViewYear === thisYear && prevViewMonth === thisMonth && prevViewDate.getDate() === thisDay;
+
       prevItems.push(this.createItem({
-        disabled,
-        highlighted: (
-          prevViewYear === thisYear &&
-          prevViewMonth === thisMonth &&
-          prevViewDate.getDate() === thisDay
-        ),
-        muted: true,
-        picked: prevViewYear === year && prevViewMonth === month && i === day,
-        text: i,
+        classes : {
+          disabled: disabled,
+          highlighted: highlighted,
+          muted: true,
+          picked: prevViewYear === year && prevViewMonth === month && i === day
+        },
+        date : prevViewDate,
+      text: i,
         view: 'day prev',
       }));
     }
@@ -275,15 +285,16 @@ export default {
         disabled = filter.call($element, date) === false;
       }
 
+      const highlighted = nextViewYear === thisYear && nextViewMonth === thisMonth && date.getDate() === thisDay;
+
       nextItems.push(this.createItem({
-        disabled,
-        picked,
-        highlighted: (
-          nextViewYear === thisYear &&
-          nextViewMonth === thisMonth &&
-          date.getDate() === thisDay
-        ),
-        muted: true,
+        classes : {
+          disabled: _disabled,
+          picked: picked,
+          highlighted: highlighted,
+          muted: true
+        },
+        date : date,
         text: i,
         view: 'day next',
       }));
@@ -310,17 +321,17 @@ export default {
         disabled = filter.call($element, date) === false;
       }
 
+      const highlighted = viewYear === thisYear && viewMonth === thisMonth && _date.getDate() === thisDay;
       const picked = viewYear === year && viewMonth === month && i === day;
       const view = picked ? 'day picked' : 'day';
 
       items.push(this.createItem({
-        disabled,
-        picked,
-        highlighted: (
-          viewYear === thisYear &&
-          viewMonth === thisMonth &&
-          date.getDate() === thisDay
-        ),
+        classes : {
+          disabled: _disabled2,
+          picked: _picked,
+          highlighted: highlighted,
+        },
+        date : _date,
         text: i,
         view: disabled ? 'day disabled' : view,
       }));

@@ -39,10 +39,14 @@
     language: '',
 
     // The date string format
-    format: 'mm/dd/yyyy',
+    // format: 'mm/dd/yyyy',
+    format: 'yyyy-mm-dd',
 
     // The initial date
     date: null,
+    
+    // ChT: The default date
+    defaultDate: '',
 
     // The start view date
     startDate: null,
@@ -655,7 +659,7 @@
           break;
 
         case 'month current':
-          if (format.hasMonth) {
+          if (format.hasMonth && !options.disableChangeView) {
             this.showView(VIEWS.MONTHS);
           }
 
@@ -819,15 +823,20 @@
           disabled = filter.call(this.$element, date) === false;
         }
 
+        var highlighted = date.getFullYear() === thisYear;
         var picked = viewYear + i === year;
         var view = picked ? 'year picked' : 'year';
 
         items.push(this.createItem({
-          picked: picked,
-          disabled: disabled,
+          classes : {
+            picked: picked,
+            disabled: disabled,
+            muted: i === start || i === end
+          },  
+          date: date,
           text: viewYear + i,
           view: disabled ? 'year disabled' : view,
-          highlighted: date.getFullYear() === thisYear
+          highlighted: highlighted
         }));
       }
 
@@ -874,14 +883,18 @@
           disabled = filter.call(this.$element, date) === false;
         }
 
+      	var highlighted = viewYear === thisYear && date.getMonth() === thisMonth;
         var picked = viewYear === year && i === month;
         var view = picked ? 'month picked' : 'month';
 
         items.push(this.createItem({
-          disabled: disabled,
-          picked: picked,
-          highlighted: viewYear === thisYear && date.getMonth() === thisMonth,
+          classes : {
+            disabled: disabled,
+            picked: picked,
+            highlighted: highlighted
+          },
           index: i,
+          date: date,
           text: months[i],
           view: disabled ? 'month disabled' : view
         }));
@@ -964,11 +977,16 @@
           disabled = filter.call($element, prevViewDate) === false;
         }
 
+      	var highlighted = prevViewYear === thisYear && prevViewMonth === thisMonth && prevViewDate.getDate() === thisDay;
+
         prevItems.push(this.createItem({
-          disabled: disabled,
-          highlighted: prevViewYear === thisYear && prevViewMonth === thisMonth && prevViewDate.getDate() === thisDay,
-          muted: true,
-          picked: prevViewYear === year && prevViewMonth === month && i === day,
+          classes : {
+            disabled: disabled,
+            highlighted: highlighted,
+            muted: true,
+            picked: prevViewYear === year && prevViewMonth === month && i === day
+          },
+          date : prevViewDate,
           text: i,
           view: 'day prev'
         }));
@@ -1015,11 +1033,16 @@
           _disabled = filter.call($element, date) === false;
         }
 
+      	var highlighted = nextViewYear === thisYear && nextViewMonth === thisMonth && date.getDate() === thisDay;
+
         nextItems.push(this.createItem({
-          disabled: _disabled,
-          picked: picked,
-          highlighted: nextViewYear === thisYear && nextViewMonth === thisMonth && date.getDate() === thisDay,
-          muted: true,
+          classes : {
+            disabled: _disabled,
+            picked: picked,
+            highlighted: highlighted,
+            muted: true
+          },
+          date : date,
           text: i,
           view: 'day next'
         }));
@@ -1046,13 +1069,17 @@
           _disabled2 = filter.call($element, _date) === false;
         }
 
+      	var highlighted = viewYear === thisYear && viewMonth === thisMonth && _date.getDate() === thisDay;
         var _picked = viewYear === year && viewMonth === month && i === day;
         var view = _picked ? 'day picked' : 'day';
 
         items.push(this.createItem({
-          disabled: _disabled2,
-          picked: _picked,
-          highlighted: viewYear === thisYear && viewMonth === thisMonth && _date.getDate() === thisDay,
+          classes : {
+            disabled: _disabled2,
+            picked: _picked,
+            highlighted: highlighted,
+          },
+          date : _date,
           text: i,
           view: _disabled2 ? 'day disabled' : view
         }));
@@ -1102,6 +1129,8 @@
     _createClass(Datepicker, [{
       key: 'init',
       value: function init() {
+        var _this = this;
+
         var $this = this.$element,
             options = this.options;
         var startDate = options.startDate,
@@ -1118,6 +1147,11 @@
 
         this.initialValue = initialValue;
         this.oldValue = initialValue;
+
+        // ChT
+        if (initialValue === '')
+          initialValue = options.defaultDate;
+
         date = this.parseDate(date || initialValue);
 
         if (startDate) {
@@ -1409,29 +1443,27 @@
         var item = {
           text: '',
           view: '',
-          muted: false,
-          picked: false,
-          disabled: false,
-          highlighted: false
+          classes: {
+            muted: false,
+            picked: false,
+            disabled: false,
+            highlighted: false
+          }
         };
+        
+        if (options.onCreateItem !== undefined) {
+          options.onCreateItem(data);
+        }
+        
+        $.extend(true, item, data);
+
         var classes = [];
 
-        $.extend(item, data);
-
-        if (item.muted) {
-          classes.push(options.mutedClass);
-        }
-
-        if (item.highlighted) {
-          classes.push(options.highlightedClass);
-        }
-
-        if (item.picked) {
-          classes.push(options.pickedClass);
-        }
-
-        if (item.disabled) {
-          classes.push(options.disabledClass);
+        if (data.classes !== undefined) {
+          $.each(item.classes, function(c) {
+              if (item.classes[c])
+                classes.push(options[c + 'Class'] || c);
+          });
         }
 
         return '<' + itemTag + ' class="' + classes.join(' ') + '" data-view="' + item.view + '">' + item.text + '</' + itemTag + '>';

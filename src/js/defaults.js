@@ -21,11 +21,14 @@ export default {
   language: '',
 
   // The date string format
-  format: 'mm/dd/yyyy',
+  format: 'yyyy-mm-dd',
 
   // The initial date
   date: null,
-
+    
+  // The default date
+  defaultDate: '',
+  
   // The start view date
   startDate: null,
 

@@ -89,7 +89,7 @@ export default {
         break;
 
       case 'month current':
-        if (format.hasMonth) {
+        if (format.hasMonth && !options.disableChangeView) {
           this.showView(VIEWS.MONTHS);
         }
 

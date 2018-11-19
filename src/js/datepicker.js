@@ -62,6 +62,9 @@ class Datepicker {
 
     this.initialValue = initialValue;
     this.oldValue = initialValue;
+    if (initialValue === '')
+      initialValue = options.defaultDate;
+
     date = this.parseDate(date || initialValue);
 
     if (startDate) {
@@ -329,29 +332,27 @@ class Datepicker {
     const item = {
       text: '',
       view: '',
-      muted: false,
-      picked: false,
-      disabled: false,
-      highlighted: false,
+      classes: {
+        muted: false,
+        picked: false,
+        disabled: false,
+        highlighted: false
+      }
     };
+        
+    if (options.onCreateItem !== undefined) {
+      options.onCreateItem(data);
+    }
+    
+    $.extend(true, item, data);
+
     const classes = [];
 
-    $.extend(item, data);
-
-    if (item.muted) {
-      classes.push(options.mutedClass);
-    }
-
-    if (item.highlighted) {
-      classes.push(options.highlightedClass);
-    }
-
-    if (item.picked) {
-      classes.push(options.pickedClass);
-    }
-
-    if (item.disabled) {
-      classes.push(options.disabledClass);
+    if (data.classes !== undefined) {
+      $.each(item.classes, function(c) {
+          if (item.classes[c])
+            classes.push(options[c + 'Class'] || c);
+      });
     }
 
     return (`<${itemTag} class="${classes.join(' ')}" data-view="${item.view}">${item.text}</${itemTag}>`);
