@@ -62,7 +62,7 @@ export default {
       }
 
       if (!disabled && filter) {
-        disabled = filter.call(this.$element, date) === false;
+        disabled = filter.call(this.$element, date, 'year') === false;
       }
 
       const highlighted = date.getFullYear() === thisYear;
@@ -126,7 +126,7 @@ export default {
       }
 
       if (!disabled && filter) {
-        disabled = filter.call(this.$element, date) === false;
+        disabled = filter.call(this.$element, date, 'month') === false;
       }
 
       const highlighted = viewYear === thisYear && date.getMonth() === thisMonth;
@@ -166,7 +166,7 @@ export default {
     const {
       disabledClass,
       filter,
-      monthsShort,
+      months,
       weekStart,
       yearSuffix,
     } = options;
@@ -226,7 +226,7 @@ export default {
       }
 
       if (!disabled && filter) {
-        disabled = filter.call($element, prevViewDate) === false;
+        disabled = filter.call($element, prevViewDate, 'day') === false;
       }
 
       const highlighted = prevViewYear === thisYear && prevViewMonth === thisMonth && prevViewDate.getDate() === thisDay;
@@ -239,7 +239,7 @@ export default {
           picked: prevViewYear === year && prevViewMonth === month && i === day
         },
         date : prevViewDate,
-      text: i,
+        text: i,
         view: 'day prev',
       }));
     }
@@ -282,7 +282,7 @@ export default {
       }
 
       if (!disabled && filter) {
-        disabled = filter.call($element, date) === false;
+        disabled = filter.call($element, date, 'day') === false;
       }
 
       const highlighted = nextViewYear === thisYear && nextViewMonth === thisMonth && date.getDate() === thisDay;
@@ -318,7 +318,7 @@ export default {
       }
 
       if (!disabled && filter) {
-        disabled = filter.call($element, date) === false;
+        disabled = filter.call($element, date, 'day') === false;
       }
 
       const highlighted = viewYear === thisYear && viewMonth === thisMonth && _date.getDate() === thisDay;
@@ -344,9 +344,9 @@ export default {
     this.$monthNext.toggleClass(disabledClass, nextDisabled);
     this.$monthCurrent
       .toggleClass(disabledClass, prevDisabled && nextDisabled)
-      .html(options.yearFirst ?
-        `${viewYear + yearSuffix} ${monthsShort[viewMonth]}` :
-        `${monthsShort[viewMonth]} ${viewYear}${yearSuffix}`);
+      .html(options.yearFirst
+        ? `${viewYear + yearSuffix} ${months[viewMonth]}`
+        : `${months[viewMonth]} ${viewYear}${yearSuffix}`);
     this.$days.html(prevItems.join('') + items.join('') + nextItems.join(''));
   },
 };

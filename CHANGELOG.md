@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.0.1 (Nov 14, 2018)
+
+- Fix position problem in scrollable modal (#121).
+- Fix the issue of the datepicker is replaced after picked a day (#128).
+
+## 1.0.0 (Aug 5, 2018)
+
+- Show full month name in date picker header (#133).
+- Fix the issue of converting `0` to `1` (#168).
+
+## 1.0.0-beta (Jun 30, 2018)
+
+- Fix the issue of years and months view rendering problem (#113).
+- Add a second parameter to the `filter` function option (#116, #151).
+- Enhance the `setStartDate` and `setEndDate` methods, supports `null` as argument (#157).
+- Change NPM package name scope from `@fengyuanchen` to `@chenfengyuan`.
+
 ## 0.6.5 (Mar 31, 2018)
 
 - Remove added data when destroy.

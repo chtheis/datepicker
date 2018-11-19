@@ -16,6 +16,7 @@ import {
   VIEWS,
 } from './constants';
 import {
+  getScrollParent,
   isNaN,
   parseFormat,
   selectorOf,
@@ -37,7 +38,13 @@ class Datepicker {
   constructor(element, options = {}) {
     this.$element = $(element);
     this.element = element;
-    this.options = $.extend({}, DEFAULTS, LANGUAGES[options.language], options);
+    this.options = $.extend(
+      {},
+      DEFAULTS,
+      LANGUAGES[options.language],
+      $.isPlainObject(options) && options,
+    );
+    this.$scrollParent = getScrollParent(element, true);
     this.built = false;
     this.shown = false;
     this.isInput = false;
@@ -143,7 +150,9 @@ class Datepicker {
       $(options.container || $this).append($picker.addClass(`${NAMESPACE}-inline`));
     } else {
       $(document.body).append($picker.addClass(`${NAMESPACE}-dropdown`));
-      $picker.addClass(CLASS_HIDE);
+      $picker.addClass(CLASS_HIDE).css({
+        zIndex: parseInt(options.zIndex, 10),
+      });
     }
 
     this.renderWeek();
@@ -313,7 +322,6 @@ class Datepicker {
     $picker.removeClass(CLASS_PLACEMENTS).addClass(placement).css({
       top,
       left,
-      zIndex: parseInt(options.zIndex, 10),
     });
   }
 
@@ -369,13 +377,13 @@ class Datepicker {
 
     if (this.isInput) {
       $this.val(value);
-    } else {
+    } else if (!this.inline || this.options.container) {
       $this.text(value);
     }
   }
 
   static setDefaults(options = {}) {
-    $.extend(DEFAULTS, LANGUAGES[options.language], options);
+    $.extend(DEFAULTS, LANGUAGES[options.language], $.isPlainObject(options) && options);
   }
 }
 
