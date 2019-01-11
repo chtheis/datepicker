@@ -22,7 +22,7 @@ export function isUndefined(value) {
 }
 
 export function isDate(value) {
-  return typeOf(value) === 'date';
+  return typeOf(value) === 'date' && !isNaN(value.getTime());
 }
 
 export function proxy(fn, context, ...args) {
@@ -106,4 +106,27 @@ export function getScrollParent(element, includeHidden = false) {
   return position === 'fixed' || !scrollParent.length
     ? $(element.ownerDocument || document)
     : scrollParent;
+}
+
+/**
+ * Add leading zeroes to the given value
+ * @param {number} value - The value to add.
+ * @param {number} [length=1] - The expected value length.
+ * @returns {string} Returns converted value.
+ */
+export function addLeadingZero(value, length = 1) {
+  const str = String(Math.abs(value));
+  let i = str.length;
+  let result = '';
+
+  if (value < 0) {
+    result += '-';
+  }
+
+  while (i < length) {
+    i += 1;
+    result += '0';
+  }
+
+  return result + str;
 }
