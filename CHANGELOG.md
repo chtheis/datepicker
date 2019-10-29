@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.0.9 (Sep 21, 2019)
+
+- Fix the issue of converting `31/10/2019` to `01/10/2019` when the current month only has 30 days (#222).
+
+## 1.0.8 (Jun 23, 2019)
+
+- Fix the issue of unable to pick the current month or year again (#203).
+
+## 1.0.7 (Feb 19, 2019)
+
+- Fix unexpected month changing (#198).
+
+## 1.0.6 (Jan 19, 2019)
+
+- Fix wrong parameter for the `$.contains` function.
+
+## 1.0.5 (Jan 19, 2019)
+
+- Emulate click in touch devices to support hiding the picker automatically (#197).
+
 ## 1.0.4 (Jan 6, 2019)
 
 - Fix wrong future month selection when today is 31 (#195).

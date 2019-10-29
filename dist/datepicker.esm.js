@@ -1,11 +1,11 @@
 /*!
- * Datepicker v1.0.4
+ * Datepicker v1.0.9
  * https://fengyuanchen.github.io/datepicker
  *
  * Copyright 2014-present Chen Fengyuan
  * Released under the MIT license
  *
- * Date: 2019-01-06T02:42:36.188Z
+ * Date: 2019-09-21T06:57:34.100Z
  */
 
 import $ from 'jquery';
@@ -100,7 +100,9 @@ var DEFAULTS = {
   pick: null
 };
 
-var WINDOW = typeof window !== 'undefined' ? window : {};
+var IS_BROWSER = typeof window !== 'undefined';
+var WINDOW = IS_BROWSER ? window : {};
+var IS_TOUCH_DEVICE = IS_BROWSER ? 'ontouchstart' in WINDOW.document.documentElement : false;
 var NAMESPACE = 'datepicker';
 var EVENT_CLICK = "click.".concat(NAMESPACE);
 var EVENT_FOCUS = "focus.".concat(NAMESPACE);
@@ -110,6 +112,7 @@ var EVENT_PICK = "pick.".concat(NAMESPACE);
 var EVENT_RESIZE = "resize.".concat(NAMESPACE);
 var EVENT_SCROLL = "scroll.".concat(NAMESPACE);
 var EVENT_SHOW = "show.".concat(NAMESPACE);
+var EVENT_TOUCH_START = "touchstart.".concat(NAMESPACE);
 var CLASS_HIDE = "".concat(NAMESPACE, "-hide");
 var LANGUAGES = {};
 var VIEWS = {
@@ -262,6 +265,11 @@ var methods = {
       $(window).on(EVENT_RESIZE, this.onResize = proxy(this.place, this));
       $(document).on(EVENT_CLICK, this.onGlobalClick = proxy(this.globalClick, this));
       $(document).on(EVENT_KEYUP, this.onGlobalKeyup = proxy(this.globalKeyup, this));
+
+      if (IS_TOUCH_DEVICE) {
+        $(document).on(EVENT_TOUCH_START, this.onTouchStart = proxy(this.touchstart, this));
+      }
+
       this.place();
     }
   },
@@ -283,6 +291,10 @@ var methods = {
       $(window).off(EVENT_RESIZE, this.onResize);
       $(document).off(EVENT_CLICK, this.onGlobalClick);
       $(document).off(EVENT_KEYUP, this.onGlobalKeyup);
+
+      if (IS_TOUCH_DEVICE) {
+        $(document).off(EVENT_TOUCH_START, this.onTouchStart);
+      }
     }
   },
   toggle: function toggle() {
@@ -492,20 +504,11 @@ var methods = {
       }
 
       if (parts.length === format.parts.length) {
+        // Set year and month first
         $.each(parts, function (i, part) {
           var value = parseInt(part, 10);
 
           switch (format.parts[i]) {
-            case 'dd':
-            case 'd':
-              date.setDate(value);
-              break;
-
-            case 'mm':
-            case 'm':
-              date.setMonth(value - 1);
-              break;
-
             case 'yy':
               date.setFullYear(2000 + value);
               break;
@@ -513,6 +516,24 @@ var methods = {
             case 'yyyy':
               // Converts 2-digit year to 2000+
               date.setFullYear(part.length === 2 ? 2000 + value : value);
+              break;
+
+            case 'mm':
+            case 'm':
+              date.setMonth(value - 1);
+              break;
+
+            default:
+          }
+        }); // Set day in the last to avoid converting `31/10/2019` to `01/10/2019`
+
+        $.each(parts, function (i, part) {
+          var value = parseInt(part, 10);
+
+          switch (format.parts[i]) {
+            case 'dd':
+            case 'd':
+              date.setDate(value);
               break;
 
             default:
@@ -612,7 +633,7 @@ var handlers = {
         if (format.hasMonth) {
           this.showView(VIEWS.MONTHS);
         } else {
-          $target.addClass(options.pickedClass).siblings().removeClass(options.pickedClass);
+          $target.siblings(".".concat(options.pickedClass)).removeClass(options.pickedClass).data('view', 'year');
           this.hideView();
         }
 
@@ -620,16 +641,17 @@ var handlers = {
         break;
 
       case 'year':
-        viewYear = parseInt($target.text(), 10);
-        date.setFullYear(viewYear);
+        viewYear = parseInt($target.text(), 10); // Set date first to avoid month changing (#195)
+
         date.setDate(getMinDay(viewYear, viewMonth, viewDay));
-        viewDate.setFullYear(viewYear);
+        date.setFullYear(viewYear);
         viewDate.setDate(getMinDay(viewYear, viewMonth, viewDay));
+        viewDate.setFullYear(viewYear);
 
         if (format.hasMonth) {
           this.showView(VIEWS.MONTHS);
         } else {
-          $target.addClass(options.pickedClass).siblings().removeClass(options.pickedClass);
+          $target.addClass(options.pickedClass).data('view', 'year picked').siblings(".".concat(options.pickedClass)).removeClass(options.pickedClass).data('view', 'year');
           this.hideView();
         }
 
@@ -665,7 +687,7 @@ var handlers = {
         if (format.hasDay) {
           this.showView(VIEWS.DAYS);
         } else {
-          $target.addClass(options.pickedClass).siblings().removeClass(options.pickedClass);
+          $target.siblings(".".concat(options.pickedClass)).removeClass(options.pickedClass).data('view', 'month');
           this.hideView();
         }
 
@@ -685,7 +707,7 @@ var handlers = {
         if (format.hasDay) {
           this.showView(VIEWS.DAYS);
         } else {
-          $target.addClass(options.pickedClass).siblings().removeClass(options.pickedClass);
+          $target.addClass(options.pickedClass).data('view', 'month picked').siblings(".".concat(options.pickedClass)).removeClass(options.pickedClass).data('view', 'month');
           this.hideView();
         }
 
@@ -701,10 +723,13 @@ var handlers = {
           viewMonth += 1;
         }
 
-        viewDay = parseInt($target.text(), 10);
+        viewDay = parseInt($target.text(), 10); // Set date to 1 to avoid month changing (#195)
+
+        date.setDate(1);
         date.setFullYear(viewYear);
         date.setMonth(viewMonth);
         date.setDate(viewDay);
+        viewDate.setDate(1);
         viewDate.setFullYear(viewYear);
         viewDate.setMonth(viewMonth);
         viewDate.setDate(viewDay);
@@ -755,6 +780,15 @@ var handlers = {
 
     if (this.isInput && target !== this.element && this.shown && (key === 'Tab' || keyCode === 9)) {
       this.hide();
+    }
+  },
+  touchstart: function touchstart(_ref3) {
+    var target = _ref3.target;
+
+    // Emulate click in touch devices to support hiding the picker automatically (#197).
+    if (this.isInput && target !== this.element && !$.contains(this.$picker[0], target)) {
+      this.hide();
+      this.element.blur();
     }
   }
 };

@@ -8,6 +8,8 @@ import {
   EVENT_RESIZE,
   EVENT_SCROLL,
   EVENT_SHOW,
+  EVENT_TOUCH_START,
+  IS_TOUCH_DEVICE,
   NAMESPACE,
 } from './constants';
 import {
@@ -45,6 +47,11 @@ export default {
       $(window).on(EVENT_RESIZE, (this.onResize = proxy(this.place, this)));
       $(document).on(EVENT_CLICK, (this.onGlobalClick = proxy(this.globalClick, this)));
       $(document).on(EVENT_KEYUP, (this.onGlobalKeyup = proxy(this.globalKeyup, this)));
+
+      if (IS_TOUCH_DEVICE) {
+        $(document).on(EVENT_TOUCH_START, (this.onTouchStart = proxy(this.touchstart, this)));
+      }
+
       this.place();
     }
   },
@@ -67,6 +74,10 @@ export default {
       $(window).off(EVENT_RESIZE, this.onResize);
       $(document).off(EVENT_CLICK, this.onGlobalClick);
       $(document).off(EVENT_KEYUP, this.onGlobalKeyup);
+
+      if (IS_TOUCH_DEVICE) {
+        $(document).off(EVENT_TOUCH_START, this.onTouchStart);
+      }
     }
   },
 
@@ -280,20 +291,11 @@ export default {
       }
 
       if (parts.length === format.parts.length) {
+        // Set year and month first
         $.each(parts, (i, part) => {
           const value = parseInt(part, 10);
 
           switch (format.parts[i]) {
-            case 'dd':
-            case 'd':
-              date.setDate(value);
-              break;
-
-            case 'mm':
-            case 'm':
-              date.setMonth(value - 1);
-              break;
-
             case 'yy':
               date.setFullYear(2000 + value);
               break;
@@ -301,6 +303,25 @@ export default {
             case 'yyyy':
               // Converts 2-digit year to 2000+
               date.setFullYear(part.length === 2 ? 2000 + value : value);
+              break;
+
+            case 'mm':
+            case 'm':
+              date.setMonth(value - 1);
+              break;
+
+            default:
+          }
+        });
+
+        // Set day in the last to avoid converting `31/10/2019` to `01/10/2019`
+        $.each(parts, (i, part) => {
+          const value = parseInt(part, 10);
+
+          switch (format.parts[i]) {
+            case 'dd':
+            case 'd':
+              date.setDate(value);
               break;
 
             default:

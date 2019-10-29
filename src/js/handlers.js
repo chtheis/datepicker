@@ -53,9 +53,9 @@ export default {
         if (format.hasMonth) {
           this.showView(VIEWS.MONTHS);
         } else {
-          $target.addClass(options.pickedClass)
-            .siblings()
-            .removeClass(options.pickedClass);
+          $target.siblings(`.${options.pickedClass}`)
+            .removeClass(options.pickedClass)
+            .data('view', 'year');
           this.hideView();
         }
 
@@ -64,17 +64,20 @@ export default {
 
       case 'year':
         viewYear = parseInt($target.text(), 10);
-        date.setFullYear(viewYear);
+        // Set date first to avoid month changing (#195)
         date.setDate(getMinDay(viewYear, viewMonth, viewDay));
-        viewDate.setFullYear(viewYear);
+        date.setFullYear(viewYear);
         viewDate.setDate(getMinDay(viewYear, viewMonth, viewDay));
+        viewDate.setFullYear(viewYear);
 
         if (format.hasMonth) {
           this.showView(VIEWS.MONTHS);
         } else {
           $target.addClass(options.pickedClass)
-            .siblings()
-            .removeClass(options.pickedClass);
+            .data('view', 'year picked')
+            .siblings(`.${options.pickedClass}`)
+            .removeClass(options.pickedClass)
+            .data('view', 'year');
           this.hideView();
         }
 
@@ -110,9 +113,9 @@ export default {
         if (format.hasDay) {
           this.showView(VIEWS.DAYS);
         } else {
-          $target.addClass(options.pickedClass)
-            .siblings()
-            .removeClass(options.pickedClass);
+          $target.siblings(`.${options.pickedClass}`)
+            .removeClass(options.pickedClass)
+            .data('view', 'month');
           this.hideView();
         }
 
@@ -134,8 +137,10 @@ export default {
           this.showView(VIEWS.DAYS);
         } else {
           $target.addClass(options.pickedClass)
-            .siblings()
-            .removeClass(options.pickedClass);
+            .data('view', 'month picked')
+            .siblings(`.${options.pickedClass}`)
+            .removeClass(options.pickedClass)
+            .data('view', 'month');
           this.hideView();
         }
 
@@ -152,9 +157,13 @@ export default {
         }
 
         viewDay = parseInt($target.text(), 10);
+
+        // Set date to 1 to avoid month changing (#195)
+        date.setDate(1);
         date.setFullYear(viewYear);
         date.setMonth(viewMonth);
         date.setDate(viewDay);
+        viewDate.setDate(1);
         viewDate.setFullYear(viewYear);
         viewDate.setMonth(viewMonth);
         viewDate.setDate(viewDay);
@@ -202,6 +211,14 @@ export default {
   globalKeyup({ target, key, keyCode }) {
     if (this.isInput && target !== this.element && this.shown && (key === 'Tab' || keyCode === 9)) {
       this.hide();
+    }
+  },
+
+  touchstart({ target }) {
+    // Emulate click in touch devices to support hiding the picker automatically (#197).
+    if (this.isInput && target !== this.element && !$.contains(this.$picker[0], target)) {
+      this.hide();
+      this.element.blur();
     }
   },
 };
